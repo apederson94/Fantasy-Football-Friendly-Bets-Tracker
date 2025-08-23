@@ -1,0 +1,5 @@
+PyGithub
+requests
+pandas
+PyYAML
+pyarrow

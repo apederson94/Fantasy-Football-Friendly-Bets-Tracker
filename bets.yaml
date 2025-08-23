@@ -1,0 +1,56 @@
+2024:
+  - player_plus:
+      name: Brian Thomas Jr.
+      bettors:
+        - treyyytrey
+    player_minus:
+      name: Calvin Ridley
+      bettors:
+        - treyyytrey's shoe
+      custom_score: 13.76
+
+  - player_plus:
+      name: Blake Corum
+      bettors:
+        - trades4sweets
+    player_minus:
+      name: Jonathon Brooks
+      bettors:
+        - amped94
+        - doingm.eth
+
+  - player_plus:
+      name: DK Metcalf
+      bettors:
+        - doingm.eth
+    player_minus:
+      name: Malik Nabers
+      bettors:
+        - trades4sweets
+
+  - player_plus:
+      name: Jahmyr Gibbs
+      bettors:
+        - trades4sweets
+    player_minus:
+      name: Saquon Barkley
+      bettors:
+        - null
+
+  - player_plus:
+      name: Jalen McMillan
+      bettors:
+        - zillah
+    player_minus:
+      name: Ja'Lynn Polk
+      bettors:
+        - amped94
+
+  - player_plus:
+      name: David Njoku
+      bettors:
+        - zillah
+    player_minus:
+      name: Cade Otton
+      bettors:
+        - amped94
