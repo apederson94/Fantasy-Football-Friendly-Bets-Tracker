@@ -27,7 +27,9 @@ def get_player_pts(player: dict, current_week: int, df: pd.DataFrame) -> float:
     if 'custom_score' in player:
         return player['custom_score'] * current_week
 
+    # get all weekly stats for a player up until the current week and then sum them
     return df.loc[(df['player_display_name'] == player['name']) & (df['week'] <= current_week), 'fantasy_points_ppr'].sum()
+
 
 def main():
     with open('bets.yaml', 'r') as bets_file:
@@ -42,16 +44,17 @@ def main():
 
     # weeks 1-18, range is non-inclusive
 
-    for bets in yearly_bets:
+    for year in yearly_bets:
+        bets = yearly_bets[year]
         for week in range(1, 19):
             this_week_winners = []
             weekly_winners.append(this_week_winners)
             for bet_idx, bet in enumerate(bets):
                 player_plus = bet['player_plus']
-                player_plus_pts = get_player_pts(player_plus, df)
+                player_plus_pts = get_player_pts(player_plus, week, df)
 
                 player_minus = bet['player_minus']
-                player_minus_pts = get_player_pts(player_minus, df)
+                player_minus_pts = get_player_pts(player_minus, week, df)
 
                 if player_plus_pts > player_minus_pts:
                     winner = {
@@ -70,3 +73,7 @@ def main():
     for week_num, week in enumerate(weekly_winners):
         for winner in week:
             print(f'Week {week_num+1}: {winner}')
+
+
+if __name__ == '__main__':
+    main()
