@@ -17,7 +17,7 @@ def download_player_data(file_name: str):
     response = requests.get(download_url, stream=True)
     response.raise_for_status()
 
-    with open(data_file_name, "wb") as f_out:
+    with open(file_name, "wb") as f_out:
         for chunk in response.iter_content(chunk_size=8192):
             if chunk:
                 f_out.write(chunk)
@@ -31,6 +31,26 @@ def get_player_pts(player: dict, current_week: int, df: pd.DataFrame) -> float:
     return df.loc[(df['player_display_name'] == player['name']) & (df['week'] <= current_week), 'fantasy_points_ppr'].sum()
 
 
+def calculate_winner(bet: dict, bet_idx: int, week: int, df: pd.DataFrame) -> dict:
+    player_plus = bet['player_plus']
+    player_plus_pts = get_player_pts(player_plus, week, df)
+
+    player_minus = bet['player_minus']
+    player_minus_pts = get_player_pts(player_minus, week, df)
+
+    if player_plus_pts > player_minus_pts:
+        return {
+            "bet": bet_idx,
+            "winner": bet['player_plus']['bettors']
+        }
+
+    else:
+        return {
+            "bet": bet_idx,
+            "winner": bet['player_minus']['bettors']
+        }
+
+
 def main():
     with open('bets.yaml', 'r') as bets_file:
         yearly_bets = yaml.safe_load(bets_file)
@@ -42,33 +62,16 @@ def main():
 
     weekly_winners = []
 
-    # weeks 1-18, range is non-inclusive
-
     for year in yearly_bets:
         bets = yearly_bets[year]
+
+        # weeks 1-18, range is non-inclusive
         for week in range(1, 19):
             this_week_winners = []
             weekly_winners.append(this_week_winners)
             for bet_idx, bet in enumerate(bets):
-                player_plus = bet['player_plus']
-                player_plus_pts = get_player_pts(player_plus, week, df)
-
-                player_minus = bet['player_minus']
-                player_minus_pts = get_player_pts(player_minus, week, df)
-
-                if player_plus_pts > player_minus_pts:
-                    winner = {
-                        "bet": bet_idx,
-                        "winner": bet['player_plus']['bettors']
-                    }
-                    this_week_winners.append(winner)
-                else:
-                    winner = {
-                        "bet": bet_idx,
-                        "winner": bet['player_minus']['bettors']
-                    }
-                    this_week_winners.append(winner)
-
+                winner = calculate_winner(bet, bet_idx, week, df)
+                this_week_winners.append(winner)
 
     for week_num, week in enumerate(weekly_winners):
         for winner in week:
