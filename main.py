@@ -1,15 +1,15 @@
 from github import Github
 import requests
 import pandas as pd
-from copy import deepcopy
 import yaml
 
-def download_player_data(file_name: str):
+def download_weekly_player_stats(year: int) -> str:
     # Get asset download URL from GitHub repo
     g = Github()
     repo = g.get_repo('nflverse/nflverse-data')
     release = repo.get_release('stats_player')
-    players_weekly_2024 = next(a for a in release.get_assets() if a.name == 'stats_player_week_2024.parquet')
+    asset_name = f'stats_player_week_{year}.parquet'
+    players_weekly_2024 = next(a for a in release.get_assets() if a.name == asset_name)
     download_url = players_weekly_2024.browser_download_url
 
     # Download asset
@@ -17,13 +17,17 @@ def download_player_data(file_name: str):
     response = requests.get(download_url, stream=True)
     response.raise_for_status()
 
-    with open(file_name, "wb") as f_out:
+    # write the data to a file so that we can stash it for later
+    with open(asset_name, "wb") as f_out:
         for chunk in response.iter_content(chunk_size=8192):
             if chunk:
                 f_out.write(chunk)
 
+    return asset_name
+
 
 def get_player_pts(player: dict, current_week: int, df: pd.DataFrame) -> float:
+    # calculate the custom player data
     if 'custom_score' in player:
         return player['custom_score'] * current_week
 
@@ -32,9 +36,11 @@ def get_player_pts(player: dict, current_week: int, df: pd.DataFrame) -> float:
 
 
 def calculate_winner(bet: dict, bet_idx: int, week: int, df: pd.DataFrame) -> dict:
+    # get the data for the player who is being bet to be higher in points
     player_plus = bet['player_plus']
     player_plus_pts = get_player_pts(player_plus, week, df)
 
+    # get the data for the player who is being bet to be lower in points
     player_minus = bet['player_minus']
     player_minus_pts = get_player_pts(player_minus, week, df)
 
@@ -43,7 +49,6 @@ def calculate_winner(bet: dict, bet_idx: int, week: int, df: pd.DataFrame) -> di
             "bet": bet_idx,
             "winner": bet['player_plus']['bettors']
         }
-
     else:
         return {
             "bet": bet_idx,
@@ -55,24 +60,30 @@ def main():
     with open('bets.yaml', 'r') as bets_file:
         yearly_bets = yaml.safe_load(bets_file)
 
-    data_file_name = 'weekly_player_data_2024.parquet'
-    # download_player_data(data_file_name)
-
-    df = pd.read_parquet(data_file_name)
-
     weekly_winners = []
 
     for year in yearly_bets:
+        # Download player data only the first time you run this script otherwise runs will take longer
+        # and you'll get rate limited by GitHub
+        # data_file_name = download_weekly_player_stats(year)
+
+        # This name format comes from the GitHub repo
+        data_file_name = f'stats_player_week_{year}.parquet'
+
+        df = pd.read_parquet(data_file_name)
         bets = yearly_bets[year]
 
         # weeks 1-18, range is non-inclusive
+        # Doing this manually for now since I haven't figured out quite how to compare across dataframes
         for week in range(1, 19):
             this_week_winners = []
             weekly_winners.append(this_week_winners)
+
             for bet_idx, bet in enumerate(bets):
                 winner = calculate_winner(bet, bet_idx, week, df)
                 this_week_winners.append(winner)
 
+    # print out the weekly winners for each bet
     for week_num, week in enumerate(weekly_winners):
         for winner in week:
             print(f'Week {week_num+1}: {winner}')
