@@ -57,22 +57,22 @@ def calculate_winner(bet: dict, bet_idx: int, week: int, df: pd.DataFrame) -> di
 
 
 def player_cumulative_df(players: list, stats_df: pd.DataFrame) -> pd.DataFrame:
-  """
-  takes a list of players and calculated the pivoted cumsum of fantasy_points
-  for easy comparisons
-  """
+    """
+    takes a list of players and calculated the pivoted cumsum of fantasy_points
+    for easy comparisons
+    """
 
-  # one issue you're going to have here is that making sure the players names
-  # are lined up with the dataframe from the API repsonse
-  is_in = stats_df['player_display_name'].isin(players)
-  picked_df = stats_df.loc[is_in]
-  picked_df = picked_df.sort_values(by=['player_display_name', 'week'])
-  select_df = picked_df[['player_display_name', 'week', 'fantasy_points']]
-  select_df['cumulative_points'] = select_df.groupby('player_display_name')['fantasy_points'].cumsum()
+    # one issue you're going to have here is that making sure the players names
+    # are lined up with the dataframe from the API repsonse
+    is_in = stats_df['player_display_name'].isin(players)
+    picked_df = stats_df.loc[is_in]
+    picked_df = picked_df.sort_values(by=['player_display_name', 'week'])
+    select_df = picked_df[['player_display_name', 'week', 'fantasy_points']]
+    select_df['cumulative_points'] = select_df.groupby('player_display_name')['fantasy_points'].cumsum()
 
-  pivot_df = select_df.pivot(index='player_display_name', columns='week', values='cumulative_points').ffill(axis=1).reset_index().style.hide(axis='index')
+    pivot_df = select_df.pivot(index='player_display_name', columns='week', values='cumulative_points').ffill(axis=1).reset_index().style.hide(axis='index')
 
-  return pivot_df
+    return pivot_df
 
 
 def main():
