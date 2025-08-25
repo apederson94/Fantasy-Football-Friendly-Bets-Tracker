@@ -56,6 +56,23 @@ def calculate_winner(bet: dict, bet_idx: int, week: int, df: pd.DataFrame) -> di
         }
 
 
+def player_cumulative_df(players: list, stats_df: pd.DataFrame) -> pd.DataFrame:
+    """
+    takes a list of players and calculates the pivoted cumsum of fantasy_points
+    for easy comparisons
+    """
+
+    is_in = stats_df['player_display_name'].isin(players)
+    picked_df = stats_df.loc[is_in]
+    picked_df = picked_df.sort_values(by=['player_display_name', 'week'])
+    select_df = picked_df[['player_display_name', 'week', 'fantasy_points_ppr']]
+    select_df['cumulative_points'] = select_df.groupby('player_display_name')['fantasy_points_ppr'].cumsum()
+
+    pivot_df = select_df.pivot(index='player_display_name', columns='week', values='cumulative_points_ppr').ffill(axis=1).reset_index().style.hide(axis='index')
+
+    return pivot_df
+
+
 def main():
     with open('bets.yaml', 'r') as bets_file:
         yearly_bets = yaml.safe_load(bets_file)
