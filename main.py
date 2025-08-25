@@ -65,7 +65,7 @@ def player_cumulative_df(players: list, stats_df: pd.DataFrame) -> pd.DataFrame:
     is_in = stats_df['player_display_name'].isin(players)
     picked_df = stats_df.loc[is_in]
     picked_df = picked_df.sort_values(by=['player_display_name', 'week'])
-    select_df = picked_df[['player_display_name', 'week', 'fantasy_points']]
+    select_df = picked_df[['player_display_name', 'week', 'fantasy_points_ppr']]
     select_df['cumulative_points'] = select_df.groupby('player_display_name')['fantasy_points_ppr'].cumsum()
 
     pivot_df = select_df.pivot(index='player_display_name', columns='week', values='cumulative_points_ppr').ffill(axis=1).reset_index().style.hide(axis='index')
